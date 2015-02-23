@@ -10,7 +10,28 @@ RUN apt-get update && apt-get install -y \
    libevent-dev \
    libssl-dev
 
-RUN curl https://dist.torproject.org/tor-${VERSION}.tar.gz | tar xz -C /tmp
+# Get signing keys securely
+# Ref: https://www.torproject.org/docs/signing-keys.html.en
+RUN mkdir /tmp/gpg
+RUN chmod 700 /tmp/gpg
+# Roger Dingledine
+RUN gpg --homedir /tmp/gpg --keyserver keys.gnupg.net --recv 19F78451
+RUN gpg --homedir /tmp/gpg --export F65CE37F04BA5B360AE6EE17C218525819F78451 | gpg --import -
+# Nick Mathewson
+RUN gpg --homedir /tmp/gpg --keyserver keys.gnupg.net --recv 165733EA
+RUN gpg --homedir /tmp/gpg --export B35BF85BF19489D04E28C33C21194EBB165733EA | gpg --import -
+RUN rm -rf /tmp/gpg
+
+WORKDIR /tmp/
+
+RUN curl https://dist.torproject.org/tor-${VERSION}.tar.gz > tor.tar.gz
+RUN curl https://dist.torproject.org/tor-${VERSION}.tar.gz.asc > tor.tar.gz.asc
+
+# Verify source tarball
+RUN gpg --verify tor.tar.gz.asc
+
+RUN tar xzf tor.tar.gz
+RUN rm tor.tar.gz tor.tar.gz.asc
 
 WORKDIR /tmp/tor-${VERSION}
 RUN ./configure
