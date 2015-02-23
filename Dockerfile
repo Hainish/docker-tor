@@ -12,9 +12,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN curl https://dist.torproject.org/tor-${VERSION}.tar.gz | tar xz -C /tmp
 
-RUN cd /tmp/tor-${VERSION} && ./configure
-RUN cd /tmp/tor-${VERSION} && make
-RUN cd /tmp/tor-${VERSION} && make install
+WORKDIR /tmp/tor-${VERSION}
+RUN ./configure
+RUN make
+RUN make install
 
 ADD ./torrc /etc/torrc
 # Allow you to upgrade your relay without having to regenerate keys
